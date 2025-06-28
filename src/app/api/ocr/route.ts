@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { OCRResult } from '@/types'
 import { supabase } from '@/lib/supabase'
 import { uploadReceiptImage } from '@/lib/api/storage'
-import { getCurrentUserOnServer } from '@/lib/api/auth'
+import { getCurrentUserOnServer } from '@/lib/api/server-auth'
 
 // Google Vision API 클라이언트 (서버리스 환경에서는 REST API 사용)
 async function processImageWithVision(imageBase64: string): Promise<OCRResult> {

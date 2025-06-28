@@ -12,7 +12,7 @@ import Button from '@/components/ui/Button'
 import Loading from '@/components/ui/Loading'
 import { Receipt } from '@/types'
 import { createReceipt } from '@/lib/api/receipts'
-import { getCurrentUser } from '@/lib/api/auth'
+import { getCurrentUser } from '@/lib/api/client-auth'
 import { uploadReceiptImage } from '@/lib/api/storage'
 
 const STEPS = {
