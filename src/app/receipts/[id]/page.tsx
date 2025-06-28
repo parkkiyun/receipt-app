@@ -84,7 +84,10 @@ export default function ReceiptDetailPage() {
           </div>
         )}
         <div className="p-6">
-          <h1 className="text-3xl font-bold mb-4 text-gray-800 dark:text-gray-100">{receipt.store_name || '가게 이름 없음'}</h1>
+          <h1 className="text-3xl font-bold mb-2 text-gray-800 dark:text-gray-100">{receipt.store_name || '가게 이름 없음'}</h1>
+          {receipt.description && (
+            <p className="text-lg text-gray-600 dark:text-gray-400 mb-4">{receipt.description}</p>
+          )}
           
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-gray-700 dark:text-gray-300">
             <div className="flex items-center">

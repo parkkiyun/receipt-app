@@ -6,7 +6,8 @@ export interface Receipt {
   store_name: string | null
   total_amount: number | null
   receipt_date: string | null
-  category: string
+  category: string | null
+  description: string | null
   raw_text: string | null
   created_at: string
   updated_at?: string

@@ -7,6 +7,7 @@ CREATE TABLE IF NOT EXISTS receipts (
   total_amount DECIMAL(10,2),
   receipt_date DATE,
   category TEXT DEFAULT 'misc' CHECK (category IN ('food', 'shopping', 'transport', 'healthcare', 'entertainment', 'misc')),
+  description TEXT,
   raw_text TEXT,
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW(),
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()

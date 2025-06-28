@@ -33,6 +33,7 @@ export default function AddReceiptPage() {
     total_amount: 0,
     receipt_date: new Date().toISOString().split('T')[0],
     category: 'misc',
+    description: '',
     image_url: '',
     raw_text: '',
   })
@@ -103,7 +104,7 @@ export default function AddReceiptPage() {
     }
   };
 
-  const handleDataChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+  const handleDataChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target
     setExtractedData((prev) => ({
       ...prev,
@@ -129,6 +130,7 @@ export default function AddReceiptPage() {
         total_amount: extractedData.total_amount || 0,
         receipt_date: extractedData.receipt_date || new Date().toISOString().split('T')[0],
         category: extractedData.category || 'misc',
+        description: extractedData.description || null,
         raw_text: extractedData.raw_text || null,
       }
       await createReceipt(receiptToSave)
@@ -200,6 +202,18 @@ export default function AddReceiptPage() {
                   <option value="transport">교통</option>
                   <option value="shopping">쇼핑</option>
               </select>
+            </div>
+            <div className="md:col-span-2">
+              <label htmlFor="description" className="block text-sm font-medium text-gray-700 mb-1">적요</label>
+              <textarea
+                name="description"
+                id="description"
+                value={extractedData.description || ''}
+                onChange={handleDataChange}
+                rows={3}
+                className="w-full p-2 border rounded"
+                placeholder="간단한 메모를 남겨보세요 (예: 팀 점심 식사)"
+              />
             </div>
           </div>
           <Button type="submit" disabled={isSubmitting} className="w-full">
