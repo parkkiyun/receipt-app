@@ -13,10 +13,18 @@ export function createSupabaseServerClient() {
           return cookieStore.get(name)?.value
         },
         set(name: string, value: string, options: CookieOptions) {
-          cookieStore.set({ name, value, ...options })
+          try {
+            cookieStore.set({ name, value, ...options })
+          } catch (error) {
+            console.log('Failed to set cookie in Server Component. This is often expected behavior. Error:', error)
+          }
         },
         remove(name: string, options: CookieOptions) {
-          cookieStore.set({ name, value: '', ...options })
+          try {
+            cookieStore.set({ name, value: '', ...options })
+          } catch (error) {
+            console.log('Failed to remove cookie in Server Component. This is often expected behavior. Error:', error)
+          }
         },
       },
     }

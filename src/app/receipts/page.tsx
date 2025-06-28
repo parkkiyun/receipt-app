@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import { User } from '@supabase/supabase-js'
-import { getCurrentUser } from '@/lib/api/client-auth'
+import { createClient } from '@/lib/supabase/client'
 import { getReceipts } from '@/lib/api/receipts'
 import { Receipt } from '@/types'
 import Loading from '@/components/ui/Loading'
@@ -17,6 +17,8 @@ export default function ReceiptsPage() {
   const [receipts, setReceipts] = useState<Receipt[]>([])
   const [loading, setLoading] = useState(true)
   const [date, setDate] = useState(new Date())
+
+  const supabase = createClient();
 
   const fetchReceipts = useCallback(async (userId: string, year: number, month: number) => {
     setLoading(true)
@@ -32,7 +34,7 @@ export default function ReceiptsPage() {
 
   useEffect(() => {
     const checkUserAndFetchData = async () => {
-      const currentUser = await getCurrentUser()
+      const { data: { user: currentUser } } = await supabase.auth.getUser();
       if (currentUser) {
         setUser(currentUser)
         fetchReceipts(currentUser.id, date.getFullYear(), date.getMonth() + 1)
@@ -41,7 +43,7 @@ export default function ReceiptsPage() {
       }
     }
     checkUserAndFetchData()
-  }, [date, fetchReceipts, router])
+  }, [date, fetchReceipts, router, supabase.auth])
   
   const handlePrevMonth = () => {
     setDate(new Date(date.getFullYear(), date.getMonth() - 1, 1))

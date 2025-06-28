@@ -12,7 +12,7 @@ import Button from '@/components/ui/Button'
 import Loading from '@/components/ui/Loading'
 import { Receipt } from '@/types'
 import { createReceipt } from '@/lib/api/receipts'
-import { getCurrentUser } from '@/lib/api/client-auth'
+import { createClient } from '@/lib/supabase/client'
 import { uploadReceiptImage } from '@/lib/api/storage'
 
 const STEPS = {
@@ -38,10 +38,12 @@ export default function AddReceiptPage() {
     raw_text: '',
   })
   
+  const supabase = createClient()
+
   useEffect(() => {
     const checkUser = async () => {
       try {
-        const currentUser = await getCurrentUser();
+        const { data: { user: currentUser } } = await supabase.auth.getUser();
         if (!currentUser) {
           router.push('/login');
         } else {
@@ -52,7 +54,7 @@ export default function AddReceiptPage() {
       }
     };
     checkUser();
-  }, [router]);
+  }, [router, supabase.auth]);
   
   const handleImageUpload = async (file: File) => {
     if (!file || !user) {
