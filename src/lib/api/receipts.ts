@@ -179,6 +179,40 @@ export async function getMonthlyStats(userId: string, year: number, month: numbe
   }
 }
 
+// 전체 월별 통계 조회 (드롭다운용)
+export async function getOverallMonthlyStats(userId: string) {
+  let query = supabase
+    .from('receipts')
+    .select('receipt_date, total_amount')
+    .order('receipt_date', { ascending: false });
+
+  if (isValidUUID(userId)) {
+    query = query.eq('user_id', userId);
+  }
+
+  const { data, error } = await query;
+
+  if (error) {
+    throw new Error(`전체 월별 통계 조회 실패: ${error.message}`);
+  }
+
+  if (!data) {
+    return [];
+  }
+
+  const monthlyStats = data.reduce((acc, receipt) => {
+    const month = receipt.receipt_date.slice(0, 7); // YYYY-MM
+    if (!acc[month]) {
+      acc[month] = { month, total_amount: 0, count: 0 };
+    }
+    acc[month].total_amount += receipt.total_amount || 0;
+    acc[month].count += 1;
+    return acc;
+  }, {} as Record<string, { month: string; total_amount: number; count: number }>);
+
+  return Object.values(monthlyStats);
+}
+
 // 카테고리별 통계 조회
 export async function getCategoryStats(userId: string, startDate?: string, endDate?: string) {
   let query = supabase
