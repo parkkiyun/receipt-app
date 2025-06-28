@@ -34,7 +34,24 @@ export async function getReceipts(
     console.error('Error fetching receipts:', error)
     throw new Error(error.message)
   }
-  return data || []
+
+  if (!data) {
+    return []
+  }
+
+  const receiptsWithSignedUrls = await Promise.all(
+    data.map(async (receipt) => {
+      if (!receipt.image_url) return receipt;
+      
+      const { data: signedUrlData } = await supabase.storage
+        .from('receipts')
+        .createSignedUrl(receipt.image_url, 60 * 5); // 5분 유효
+      
+      return { ...receipt, image_url: signedUrlData?.signedUrl || receipt.image_url };
+    })
+  );
+
+  return receiptsWithSignedUrls as Receipt[]
 }
 
 // 특정 영수증 조회
@@ -49,19 +66,15 @@ export async function getReceiptById(id: string): Promise<Receipt | null> {
     throw new Error(`영수증 조회 실패: ${error.message}`)
   }
   if (!receipt) {
-    throw new Error('영수증을 찾을 수 없습니다.')
+    return null
   }
 
   if (receipt.image_url) {
-    // 서명된 URL 생성 (1시간 유효)
-    const { data: signedUrlData } = await supabase
-      .storage
+    const { data: signedUrlData } = await supabase.storage
       .from('receipts')
-      .createSignedUrl(receipt.image_url, 60 * 60)
+      .createSignedUrl(receipt.image_url, 60 * 5) // 5분 유효
     
-    if (signedUrlData?.signedUrl) {
-      receipt.image_url = signedUrlData.signedUrl
-    }
+    receipt.image_url = signedUrlData?.signedUrl || receipt.image_url
   }
 
   return receipt as Receipt

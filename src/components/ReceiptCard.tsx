@@ -23,7 +23,8 @@ export default function ReceiptCard({ receipt, onClick }: ReceiptCardProps) {
     }).format(amount)
   }
 
-  const getCategoryColor = (category: string) => {
+  const getCategoryColor = (category: string | null) => {
+    if (!category) return 'bg-gray-100 text-gray-800';
     const colors: { [key: string]: string } = {
       food: 'bg-orange-100 text-orange-800',
       shopping: 'bg-blue-100 text-blue-800',
@@ -33,6 +34,11 @@ export default function ReceiptCard({ receipt, onClick }: ReceiptCardProps) {
       misc: 'bg-gray-100 text-gray-800'
     }
     return colors[category] || colors.misc
+  }
+
+  const isValidUrl = (url: string | null | undefined): boolean => {
+    if (!url) return false
+    return url.startsWith('http://') || url.startsWith('https://')
   }
 
   return (
@@ -46,9 +52,9 @@ export default function ReceiptCard({ receipt, onClick }: ReceiptCardProps) {
           {/* 영수증 이미지 썸네일 */}
           <div className="flex-shrink-0">
             <div className="w-16 h-20 bg-gray-100 rounded-md overflow-hidden">
-              {receipt.image_url ? (
+              {isValidUrl(receipt.image_url) ? (
                 <Image
-                  src={receipt.image_url}
+                  src={receipt.image_url!}
                   alt="영수증 이미지"
                   width={64}
                   height={80}
@@ -71,7 +77,7 @@ export default function ReceiptCard({ receipt, onClick }: ReceiptCardProps) {
               <span
                 className={`px-2 py-1 rounded-full text-xs font-medium ${getCategoryColor(receipt.category)}`}
               >
-                {receipt.category}
+                {receipt.category || '미분류'}
               </span>
             </div>
 
@@ -88,7 +94,7 @@ export default function ReceiptCard({ receipt, onClick }: ReceiptCardProps) {
               <Calendar className="h-4 w-4 mr-1" />
               {receipt.receipt_date
                 ? formatDate(receipt.receipt_date)
-                : formatDate(receipt.created_at)
+                : (receipt.created_at ? formatDate(receipt.created_at) : '날짜 없음')
               }
             </div>
           </div>
