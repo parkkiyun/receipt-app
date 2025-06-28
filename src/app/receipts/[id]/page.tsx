@@ -7,7 +7,7 @@ import { getReceiptById, deleteReceipt } from '@/lib/api/receipts'
 import { Receipt } from '@/types'
 import Button from '@/components/ui/Button'
 import Loading from '@/components/ui/Loading'
-import { ArrowLeft, Edit, Trash2, Calendar, Store, Tag, FileText, DollarSign } from 'lucide-react'
+import { ArrowLeft, Edit, Trash2, Calendar, Tag, FileText, DollarSign } from 'lucide-react'
 
 export default function ReceiptDetailPage() {
   const params = useParams()
