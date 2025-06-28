@@ -1,4 +1,8 @@
-import { supabase } from '@/lib/supabase'
+'use client'; // This can be used in client components
+
+import { createBrowserClient } from '@supabase/ssr';
+import { supabase } from '@/lib/supabase';
+import { createSupabaseServerClient } from '../supabase/server';
 import { User } from '@supabase/supabase-js'
 
 // 현재 사용자 정보 가져오기
@@ -16,6 +20,12 @@ export async function getCurrentUser(): Promise<User | null> {
     console.error('사용자 정보 조회 중 예외 발생:', error)
     return null
   }
+}
+
+export async function getCurrentUserOnServer() {
+  const supabase = createSupabaseServerClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  return user;
 }
 
 // 익명 사용자 생성 (개발/테스트 목적)

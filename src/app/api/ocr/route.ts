@@ -2,7 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { OCRResult } from '@/types'
 import { supabase } from '@/lib/supabase'
 import { uploadReceiptImage } from '@/lib/api/storage'
-import { getCurrentUser } from '@/lib/api/auth'
+import { getCurrentUserOnServer } from '@/lib/api/auth'
 
 // Google Vision API 클라이언트 (서버리스 환경에서는 REST API 사용)
 async function processImageWithVision(imageBase64: string): Promise<OCRResult> {
@@ -215,7 +215,7 @@ function parseOcrText(text: string): ParsedData {
 
 export async function POST(request: NextRequest) {
   try {
-    const user = await getCurrentUser();
+    const user = await getCurrentUserOnServer();
     if (!user) {
       return NextResponse.json({ error: '인증되지 않은 사용자입니다.' }, { status: 401 });
     }
