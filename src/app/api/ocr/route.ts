@@ -1,5 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { OCRResult } from '@/types'
+import { supabase } from '@/lib/supabase'
+import { uploadReceiptImage } from '@/lib/api/storage'
+import { getCurrentUser } from '@/lib/api/auth'
 
 // Google Vision API 클라이언트 (서버리스 환경에서는 REST API 사용)
 async function processImageWithVision(imageBase64: string): Promise<OCRResult> {
@@ -157,40 +160,128 @@ function parseReceiptText(text: string) {
   }
 }
 
-export async function POST(request: NextRequest) {
-  try {
-    const formData = await request.formData()
-    const file = formData.get('image') as File
+interface ParsedData {
+  store_name?: string;
+  date?: string;
+  time?: string;
+  total_amount?: number;
+}
 
-    if (!file) {
-      return NextResponse.json(
-        { error: '이미지 파일이 필요합니다.' },
-        { status: 400 }
-      )
+function parseOcrText(text: string): ParsedData {
+    const lines = text.split('\\n');
+    const result: ParsedData = {};
+  
+    // 가게 이름 (보통 첫 번째 또는 두 번째 줄에 위치)
+    const storeNamePatterns = [/점/, /㈜/, /유 /, /가맹점명/];
+    for (let i = 0; i < Math.min(lines.length, 5); i++) {
+        if (storeNamePatterns.some(p => p.test(lines[i])) && !lines[i].includes('대표')) {
+            result.store_name = lines[i].replace(/[^가-힣A-Za-z0-9\s]/g, '').trim();
+            break;
+        }
+    }
+    if (!result.store_name && lines.length > 0) {
+        result.store_name = lines[0].replace(/[^가-힣A-Za-z0-9\s]/g, '').trim();
     }
 
-    // 파일을 Base64로 변환
-    const bytes = await file.arrayBuffer()
-    const buffer = Buffer.from(bytes)
-    const base64Image = buffer.toString('base64')
 
-    // OCR 처리
-    const result = await processImageWithVision(base64Image)
+    // 날짜 및 시간
+    const dateTimeRegex = /(\d{4}[-./]?\s?\d{2}[-./]?\s?\d{2})[\s(]*(\d{2}:\d{2}:\d{2})?/;
+    const dateMatches = text.match(dateTimeRegex);
+    if (dateMatches) {
+        result.date = dateMatches[1].replace(/[./]/g, '-');
+        if(dateMatches[2]) {
+            result.time = dateMatches[2];
+        }
+    }
 
-    return NextResponse.json({
-      success: true,
-      data: result
-    })
+    // 합계 금액
+    const amountKeywords = ['합계', '총액', '받을금액', '판매합계', '결제금액'];
+    const amountRegex = new RegExp(`(${amountKeywords.join('|')})\\s*([0-9,]+)`);
+    const amountMatches = text.match(amountRegex);
+    if (amountMatches && amountMatches[2]) {
+        result.total_amount = parseInt(amountMatches[2].replace(/,/g, ''), 10);
+    } else {
+        // 합계 키워드가 없는 경우, 숫자와 쉼표로만 이루어진 가장 큰 금액을 찾음
+        const allAmounts = text.match(/[0-9,]+/g)
+            ?.map(s => parseInt(s.replace(/,/g, ''), 10))
+            .filter(n => !isNaN(n) && n > 100); // 100원 이하는 제외
+        if (allAmounts && allAmounts.length > 0) {
+            result.total_amount = Math.max(...allAmounts);
+        }
+    }
 
-  } catch (error) {
-    console.error('OCR API 오류:', error)
-    
-    return NextResponse.json(
-      { 
-        error: error instanceof Error ? error.message : '알 수 없는 오류가 발생했습니다.',
-        success: false 
+    return result;
+}
+
+export async function POST(request: NextRequest) {
+  try {
+    const user = await getCurrentUser();
+    if (!user) {
+      return NextResponse.json({ error: '인증되지 않은 사용자입니다.' }, { status: 401 });
+    }
+
+    const formData = await request.formData();
+    const file = formData.get('image') as File;
+
+    if (!file) {
+      return NextResponse.json({ error: '이미지 파일이 없습니다.' }, { status: 400 });
+    }
+
+    const imageUrl = await uploadReceiptImage(file, user.id);
+    if (!imageUrl) {
+      return NextResponse.json({ error: '이미지 업로드에 실패했습니다.' }, { status: 500 });
+    }
+
+    const ocrRequestPayload = {
+      images: [
+        {
+          format: file.type.split('/')[1] || 'png',
+          name: file.name,
+        },
+      ],
+      requestId: 'string', // uuid or other unique id
+      version: 'V2',
+      timestamp: Date.now(),
+    };
+
+    const ocrRequestFormData = new FormData();
+    ocrRequestFormData.append(
+      'message',
+      new Blob([JSON.stringify(ocrRequestPayload)], { type: 'application/json' })
+    );
+    ocrRequestFormData.append('file', file);
+
+
+    const ocrApiResponse = await fetch(process.env.NEXT_PUBLIC_CLOVA_OCR_API_URL!, {
+      method: 'POST',
+      headers: {
+        'X-OCR-SECRET': process.env.NEXT_PUBLIC_CLOVA_OCR_API_KEY!,
       },
-      { status: 500 }
-    )
+      body: ocrRequestFormData,
+    });
+    
+    if (!ocrApiResponse.ok) {
+      const errorText = await ocrApiResponse.text();
+      console.error('OCR API 응답 오류:', errorText);
+      return NextResponse.json({ error: `OCR API 처리 실패: ${errorText}` }, { status: ocrApiResponse.status });
+    }
+
+    const ocrData = await ocrApiResponse.json();
+    if (!ocrData.images || ocrData.images.length === 0) {
+      return NextResponse.json({ error: 'OCR 결과가 없습니다.' }, { status: 500 });
+    }
+
+    const text = ocrData.images[0]?.inferResult?.text || '';
+    const parsedData = parseOcrText(text);
+
+    return NextResponse.json({ 
+      ...parsedData,
+      text,
+      imageUrl
+    });
+
+  } catch (e: any) {
+    console.error('OCR API 오류:', e);
+    return NextResponse.json({ error: e.message || '알 수 없는 서버 오류' }, { status: 500 });
   }
 } 

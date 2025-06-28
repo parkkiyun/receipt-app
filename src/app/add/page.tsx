@@ -70,16 +70,13 @@ export default function AddReceiptPage() {
         useWebWorker: true,
       };
       const compressedFile = await imageCompression(file, options);
-      const imageUrl = await uploadReceiptImage(compressedFile, user.id);
-
-      if (!imageUrl) {
-        throw new Error('이미지 업로드 후 URL을 받지 못했습니다.');
-      }
       
+      const formData = new FormData();
+      formData.append('image', compressedFile);
+
       const ocrResponse = await fetch('/api/ocr', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ imageUrl }),
+        body: formData,
       });
 
       if (!ocrResponse.ok) {
@@ -90,7 +87,7 @@ export default function AddReceiptPage() {
       const ocrData = await ocrResponse.json();
       setExtractedData({
         ...extractedData,
-        image_url: imageUrl,
+        image_url: ocrData.imageUrl,
         store_name: ocrData.store_name,
         total_amount: ocrData.total_amount,
         raw_text: ocrData.text,
