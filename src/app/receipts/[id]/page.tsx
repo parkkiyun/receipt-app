@@ -54,79 +54,62 @@ export default function ReceiptDetailPage() {
   if (!receipt) return <div className="text-center p-4">영수증을 찾을 수 없습니다.</div>
 
   return (
-    <div className="max-w-2xl mx-auto p-4 sm:p-6 lg:p-8">
-      <div className="flex items-center justify-between mb-4">
-        <Button variant="ghost" onClick={() => router.back()} className="flex items-center">
-          <ArrowLeft className="h-5 w-5 mr-2" />
+    <div className="container max-w-2xl py-8">
+      <div className="flex items-center justify-between mb-6">
+        <Button variant="ghost" onClick={() => router.back()}>
+          <ArrowLeft className="h-4 w-4 mr-2" />
           뒤로가기
         </Button>
         <div className="flex gap-2">
           <Button variant="outline" disabled>
-            <Edit className="h-5 w-5 mr-2" />
+            <Edit className="h-4 w-4 mr-2" />
             수정
           </Button>
           <Button variant="destructive" onClick={handleDelete}>
-            <Trash2 className="h-5 w-5 mr-2" />
+            <Trash2 className="h-4 w-4 mr-2" />
             삭제
           </Button>
         </div>
       </div>
 
-      <div className="bg-white dark:bg-gray-800 shadow-lg rounded-lg overflow-hidden">
+      <div className="bg-white shadow-sm rounded-lg overflow-hidden border">
         {receipt.image_url && (
-          <div className="relative w-full h-96 bg-gray-100 dark:bg-gray-700">
+          <div className="relative w-full h-auto bg-gray-100 p-4">
             <Image
               src={receipt.image_url}
               alt={receipt.store_name || '영수증 이미지'}
-              layout="fill"
-              objectFit="contain"
+              width={800}
+              height={1200}
+              className="rounded-md"
             />
           </div>
         )}
-        <div className="p-6">
-          <h1 className="text-3xl font-bold mb-2 text-gray-800 dark:text-gray-100">{receipt.store_name || '가게 이름 없음'}</h1>
+        <div className="p-6 space-y-4">
+          <div>
+            <p className="text-sm text-gray-500">가게 이름</p>
+            <h1 className="text-3xl font-bold text-gray-800">{receipt.store_name || '가게 이름 없음'}</h1>
+          </div>
+          
           {receipt.description && (
-            <p className="text-lg text-gray-600 dark:text-gray-400 mb-4">{receipt.description}</p>
+            <div>
+              <p className="text-sm text-gray-500">적요</p>
+              <p className="text-lg text-gray-700">{receipt.description}</p>
+            </div>
           )}
           
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-gray-700 dark:text-gray-300">
-            <div className="flex items-center">
-              <DollarSign className="h-5 w-5 mr-3 text-gray-400" />
-              <div>
-                <p className="text-sm text-gray-500 dark:text-gray-400">결제 금액</p>
-                <p className="font-semibold text-lg">{receipt.total_amount ? `${Number(receipt.total_amount).toLocaleString()}원` : 'N/A'}</p>
-              </div>
-            </div>
-            <div className="flex items-center">
-              <Calendar className="h-5 w-5 mr-3 text-gray-400" />
-              <div>
-                <p className="text-sm text-gray-500 dark:text-gray-400">거래 일시</p>
-                <p className="font-semibold">{receipt.receipt_date ? new Date(receipt.receipt_date).toLocaleDateString() : 'N/A'}</p>
-              </div>
-            </div>
-            <div className="flex items-center">
-              <Tag className="h-5 w-5 mr-3 text-gray-400" />
-              <div>
-                <p className="text-sm text-gray-500 dark:text-gray-400">카테고리</p>
-                <p className="font-semibold capitalize">{receipt.category || '미분류'}</p>
-              </div>
-            </div>
-            <div className="flex items-center">
-               <Store className="h-5 w-5 mr-3 text-gray-400" />
-               <div>
-                <p className="text-sm text-gray-500 dark:text-gray-400">가게명</p>
-                <p className="font-semibold">{receipt.store_name || 'N/A'}</p>
-              </div>
-            </div>
+          <div className="grid grid-cols-2 gap-4 pt-4 border-t">
+            <InfoItem icon={DollarSign} label="결제 금액" value={receipt.total_amount ? `${Number(receipt.total_amount).toLocaleString()}원` : 'N/A'} />
+            <InfoItem icon={Calendar} label="거래 일시" value={receipt.receipt_date ? new Date(receipt.receipt_date).toLocaleDateString() : 'N/A'} />
+            <InfoItem icon={Tag} label="카테고리" value={receipt.category || '미분류'} className="capitalize" />
           </div>
           
           {receipt.raw_text && (
-            <div className="mt-6">
-              <h2 className="text-xl font-semibold mb-2 flex items-center text-gray-800 dark:text-gray-100">
-                <FileText className="h-5 w-5 mr-2" />
-                OCR 추출 원본 텍스트
+            <div className="pt-4 border-t">
+              <h2 className="text-lg font-semibold mb-2 flex items-center text-gray-800">
+                <FileText className="h-5 w-5 mr-2 text-gray-500" />
+                OCR 추출 원본
               </h2>
-              <pre className="bg-gray-100 dark:bg-gray-900 p-4 rounded-lg text-sm text-gray-600 dark:text-gray-300 whitespace-pre-wrap font-sans">
+              <pre className="bg-gray-50 p-4 rounded-md text-sm text-gray-600 whitespace-pre-wrap font-sans">
                 {receipt.raw_text}
               </pre>
             </div>
@@ -135,4 +118,14 @@ export default function ReceiptDetailPage() {
       </div>
     </div>
   )
-} 
+}
+
+const InfoItem = ({ icon: Icon, label, value, className }: { icon: React.ElementType, label: string, value: string, className?: string }) => (
+  <div className="flex items-start">
+    <Icon className="h-5 w-5 mr-3 text-gray-400 mt-1" />
+    <div>
+      <p className="text-sm text-gray-500">{label}</p>
+      <p className={`font-semibold ${className}`}>{value}</p>
+    </div>
+  </div>
+) 

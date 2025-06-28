@@ -9,58 +9,36 @@ function isValidUUID(uuid: string): boolean {
 
 // 영수증 목록 조회
 export async function getReceipts(
-  userId?: string,
-  limit = 20,
+  userId: string,
+  limit = 10,
   offset = 0,
-  category?: string,
-  searchTerm?: string
-) {
+  year?: number,
+  month?: number
+): Promise<Receipt[]> {
   let query = supabase
     .from('receipts')
     .select('*')
-    .order('created_at', { ascending: false })
+    .eq('user_id', userId)
+    .order('receipt_date', { ascending: false })
     .range(offset, offset + limit - 1)
 
-  if (userId) {
-    query = query.eq('user_id', userId)
-  }
-
-  if (category && category !== 'all') {
-    query = query.eq('category', category)
-  }
-
-  if (searchTerm) {
-    query = query.or(`store_name.ilike.%${searchTerm}%,raw_text.ilike.%${searchTerm}%`)
+  if (year && month) {
+    const startDate = new Date(year, month - 1, 1).toISOString()
+    const endDate = new Date(year, month, 0).toISOString()
+    query = query.gte('receipt_date', startDate).lte('receipt_date', endDate)
   }
 
   const { data, error } = await query
 
   if (error) {
-    throw new Error(`영수증 조회 실패: ${error.message}`)
+    console.error('Error fetching receipts:', error)
+    throw new Error(error.message)
   }
-  
-  if (!data) {
-    return []
-  }
-
-  // 서명된 URL 생성 (5분 유효)
-  const receiptsWithSignedUrls = await Promise.all(
-    data.map(async (receipt) => {
-      if (!receipt.image_url) return receipt
-      const { data: signedUrlData } = await supabase
-        .storage
-        .from('receipts')
-        .createSignedUrl(receipt.image_url, 60 * 5)
-      
-      return { ...receipt, image_url: signedUrlData?.signedUrl || receipt.image_url }
-    })
-  )
-
-  return receiptsWithSignedUrls as Receipt[]
+  return data || []
 }
 
 // 특정 영수증 조회
-export async function getReceiptById(id: string) {
+export async function getReceiptById(id: string): Promise<Receipt | null> {
   const { data: receipt, error } = await supabase
     .from('receipts')
     .select('*')

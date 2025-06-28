@@ -144,11 +144,11 @@ export default function AddReceiptPage() {
   }
   
   if (!user) {
-    return <div className="flex justify-center items-center h-screen"><Loading /></div>;
+    return <div className="flex justify-center items-center h-[calc(100vh-4rem)]"><Loading /></div>;
   }
 
   return (
-    <div className="max-w-2xl mx-auto p-4">
+    <div className="container max-w-2xl py-8">
       {step !== STEPS.INPUT && (
         <Button variant="ghost" onClick={() => { setStep(STEPS.INPUT); setError(null); }} className="mb-4">
           <ArrowLeft className="mr-2 h-4 w-4" /> 다시 선택
@@ -157,46 +157,48 @@ export default function AddReceiptPage() {
 
       {step === STEPS.INPUT && (
         <div>
-          <h1 className="text-2xl font-bold mb-4">영수증 추가</h1>
+          <h1 className="text-3xl font-bold mb-2">영수증 추가</h1>
+          <p className="text-gray-600 mb-6">카메라로 촬영하거나, 파일을 업로드하여 영수증을 추가하세요.</p>
           <ImageInputTabs onImageSelect={handleImageUpload} />
         </div>
       )}
 
       {step === STEPS.PROCESSING && (
-         <div className="text-center p-8">
+         <div className="text-center p-8 h-96 flex flex-col justify-center items-center bg-gray-50 rounded-lg">
             <Loading text="영수증을 분석하는 중입니다. 잠시만 기다려주세요..." />
          </div>
       )}
 
       {step === STEPS.CONFIRM && (
         <form onSubmit={handleSubmit}>
-          <h2 className="text-xl font-bold mb-4">내용 확인 및 수정</h2>
+          <h2 className="text-2xl font-bold mb-6">내용 확인 및 수정</h2>
           {extractedData.image_url && (
-              <div className="relative mb-4 rounded-lg overflow-hidden" style={{ width: '100%', paddingTop: '100%' }}>
+              <div className="relative mb-6 rounded-lg overflow-hidden border">
                 <Image 
                   src={extractedData.image_url} 
                   alt="영수증" 
-                  layout="fill"
-                  objectFit="contain"
+                  width={500}
+                  height={500}
+                  className="w-full h-auto"
                 />
               </div>
           )}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
             <div>
               <label htmlFor="store_name" className="block text-sm font-medium text-gray-700 mb-1">가게 이름</label>
-              <input type="text" name="store_name" id="store_name" value={extractedData.store_name || ''} onChange={handleDataChange} className="w-full p-2 border rounded" />
+              <input type="text" name="store_name" id="store_name" value={extractedData.store_name || ''} onChange={handleDataChange} className="w-full p-2 border rounded-md" />
             </div>
             <div>
               <label htmlFor="total_amount" className="block text-sm font-medium text-gray-700 mb-1">총액</label>
-              <input type="number" name="total_amount" id="total_amount" value={extractedData.total_amount || 0} onChange={handleDataChange} className="w-full p-2 border rounded" />
+              <input type="number" name="total_amount" id="total_amount" value={extractedData.total_amount || 0} onChange={handleDataChange} className="w-full p-2 border rounded-md" />
             </div>
             <div>
               <label htmlFor="receipt_date" className="block text-sm font-medium text-gray-700 mb-1">날짜</label>
-              <input type="date" name="receipt_date" id="receipt_date" value={extractedData.receipt_date || ''} onChange={handleDataChange} className="w-full p-2 border rounded" />
+              <input type="date" name="receipt_date" id="receipt_date" value={extractedData.receipt_date || ''} onChange={handleDataChange} className="w-full p-2 border rounded-md" />
             </div>
             <div>
               <label htmlFor="category" className="block text-sm font-medium text-gray-700 mb-1">카테고리</label>
-              <select name="category" id="category" value={extractedData.category || 'misc'} onChange={handleDataChange} className="w-full p-2 border rounded">
+              <select name="category" id="category" value={extractedData.category || 'misc'} onChange={handleDataChange} className="w-full p-2 border rounded-md">
                   <option value="misc">기타</option>
                   <option value="food">식비</option>
                   <option value="transport">교통</option>
@@ -211,7 +213,7 @@ export default function AddReceiptPage() {
                 value={extractedData.description || ''}
                 onChange={handleDataChange}
                 rows={3}
-                className="w-full p-2 border rounded"
+                className="w-full p-2 border rounded-md"
                 placeholder="간단한 메모를 남겨보세요 (예: 팀 점심 식사)"
               />
             </div>
@@ -224,7 +226,7 @@ export default function AddReceiptPage() {
       )}
 
       {error && (
-        <div className="mt-4 p-4 bg-red-100 text-red-700 rounded flex items-center">
+        <div className="mt-4 p-4 bg-red-100 text-red-700 rounded-md flex items-center">
             <AlertCircle className="mr-2 h-4 w-4" />
             {error}
         </div>
