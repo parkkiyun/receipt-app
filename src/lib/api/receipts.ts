@@ -1,4 +1,4 @@
-import { supabase } from '@/lib/supabase'
+import { createSupabaseServerClient } from '@/lib/supabase/server'
 import { Receipt, CreateReceiptData } from '@/types'
 
 // UUID 형식 검증 함수
@@ -15,6 +15,7 @@ export async function getReceipts(
   year?: number,
   month?: number
 ): Promise<Receipt[]> {
+  const supabase = createSupabaseServerClient()
   let query = supabase
     .from('receipts')
     .select('*')
@@ -56,6 +57,7 @@ export async function getReceipts(
 
 // 특정 영수증 조회
 export async function getReceiptById(id: string): Promise<Receipt | null> {
+  const supabase = createSupabaseServerClient()
   const { data: receipt, error } = await supabase
     .from('receipts')
     .select('*')
