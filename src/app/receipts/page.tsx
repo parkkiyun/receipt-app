@@ -3,7 +3,7 @@
 import { useState, useEffect, useCallback } from 'react'
 import { useRouter } from 'next/navigation'
 import { User } from '@supabase/supabase-js'
-import { getCurrentUser } from '@/lib/api/auth'
+import { getCurrentUser } from '@/lib/api/client-auth'
 import { getReceipts } from '@/lib/api/receipts'
 import { Receipt } from '@/types'
 import Loading from '@/components/ui/Loading'
