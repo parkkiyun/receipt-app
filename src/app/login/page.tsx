@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Button from '@/components/ui/Button'
-import { signInWithEmail, signUpWithEmail } from '@/lib/api/auth'
+import { signInWithEmail, signUpWithEmail } from '@/lib/api/client-auth'
 import { Eye, EyeOff, Receipt, Loader2 } from 'lucide-react'
 
 export default function LoginPage() {
