@@ -1,19 +1,18 @@
 'use client'
 
 import { useState, useRef, useCallback, useEffect } from 'react'
-import { Camera, StopCircle, RotateCcw, X } from 'lucide-react'
+import { Camera } from 'lucide-react'
 import Button from '@/components/ui/Button'
 
 interface CameraCaptureProps {
   onCapture: (file: File) => void
-  onClose?: () => void
 }
 
-export default function CameraCapture({ onCapture, onClose }: CameraCaptureProps) {
+export default function CameraCapture({ onCapture }: CameraCaptureProps) {
   const [isStreaming, setIsStreaming] = useState(false)
   const [hasPermission, setHasPermission] = useState<boolean | null>(null)
   const [error, setError] = useState<string | null>(null)
-  const [facingMode, setFacingMode] = useState<'user' | 'environment'>('environment')
+  const [facingMode] = useState<'user' | 'environment'>('environment')
   
   const videoRef = useRef<HTMLVideoElement>(null)
   const canvasRef = useRef<HTMLCanvasElement>(null)

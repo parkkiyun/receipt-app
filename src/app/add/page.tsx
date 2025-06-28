@@ -2,7 +2,8 @@
 
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import { Camera, Upload, FileText, ArrowLeft, Save, Loader2, AlertCircle } from 'lucide-react'
+import Image from 'next/image'
+import { ArrowLeft, Save, Loader2, AlertCircle } from 'lucide-react'
 import { User } from '@supabase/supabase-js'
 import imageCompression from 'browser-image-compression'
 
@@ -45,7 +46,7 @@ export default function AddReceiptPage() {
         } else {
           setUser(currentUser);
         }
-      } catch (error) {
+      } catch {
         router.push('/login');
       }
     };
@@ -95,15 +96,16 @@ export default function AddReceiptPage() {
         receipt_date: ocrData.date || new Date().toISOString().split('T')[0],
       });
       setStep(STEPS.CONFIRM);
-    } catch (err: any) {
-      setError(err.message || '영수증 처리에 실패했습니다. 다시 시도해 주세요.');
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : '영수증 처리에 실패했습니다. 다시 시도해 주세요.';
+      setError(errorMessage);
       setStep(STEPS.INPUT);
     }
   };
 
   const handleDataChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target
-    setExtractedData((prev: Partial<Receipt>) => ({
+    setExtractedData((prev) => ({
       ...prev,
       [name]: name === 'total_amount' ? Number(value) : value,
     }))
@@ -131,8 +133,9 @@ export default function AddReceiptPage() {
       }
       await createReceipt(receiptToSave)
       router.push('/')
-    } catch (err: any) {
-      setError(err.message || '저장에 실패했습니다.')
+    } catch (err) {
+      const errorMessage = err instanceof Error ? err.message : '저장에 실패했습니다.';
+      setError(errorMessage);
     } finally {
       setIsSubmitting(false)
     }
@@ -167,8 +170,13 @@ export default function AddReceiptPage() {
         <form onSubmit={handleSubmit}>
           <h2 className="text-xl font-bold mb-4">내용 확인 및 수정</h2>
           {extractedData.image_url && (
-              <div className="mb-4 rounded-lg overflow-hidden">
-                <img src={extractedData.image_url} alt="영수증" className="w-full h-auto" />
+              <div className="relative mb-4 rounded-lg overflow-hidden" style={{ width: '100%', paddingTop: '100%' }}>
+                <Image 
+                  src={extractedData.image_url} 
+                  alt="영수증" 
+                  layout="fill"
+                  objectFit="contain"
+                />
               </div>
           )}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">

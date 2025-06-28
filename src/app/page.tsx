@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { Camera, Upload, FileText, PlusCircle, LogOut, User } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import Button from '@/components/ui/Button'
@@ -24,25 +24,12 @@ export default function Home() {
   const [authLoading, setAuthLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   
-  // 인증 상태 확인
-  useEffect(() => {
-    checkAuth()
-  }, [])
-
-  // 인증된 사용자의 데이터 로드
-  useEffect(() => {
-    if (user) {
-      loadData()
-    }
-  }, [user])
-
-  const checkAuth = async () => {
+  const checkAuth = useCallback(async () => {
     try {
       const currentUser = await getCurrentUser()
       if (currentUser) {
         setUser(currentUser)
       } else {
-        // 인증되지 않은 사용자는 로그인 페이지로 리다이렉트
         router.push('/login')
       }
     } catch (error) {
@@ -51,20 +38,18 @@ export default function Home() {
     } finally {
       setAuthLoading(false)
     }
-  }
+  }, [router])
 
-  const loadData = async () => {
+  const loadData = useCallback(async () => {
     if (!user) return
 
     try {
       setLoading(true)
       setError(null)
 
-      // 최근 영수증 조회 (최대 4개)
       const recentReceipts = await getReceipts(user.id, 4, 0)
       setReceipts(recentReceipts)
 
-      // 이번 달 통계 조회
       const now = new Date()
       const stats = await getMonthlyStats(user.id, now.getFullYear(), now.getMonth() + 1)
       setMonthlyStats(stats)
@@ -75,7 +60,19 @@ export default function Home() {
     } finally {
       setLoading(false)
     }
-  }
+  }, [user])
+
+  // 인증 상태 확인
+  useEffect(() => {
+    checkAuth()
+  }, [checkAuth])
+
+  // 인증된 사용자의 데이터 로드
+  useEffect(() => {
+    if (user) {
+      loadData()
+    }
+  }, [user, loadData])
 
   const handleSignOut = async () => {
     try {
@@ -243,7 +240,7 @@ export default function Home() {
                 데이터를 불러올 수 없습니다
               </h3>
               <p className="text-gray-600 mb-4">{error}</p>
-              <Button onClick={loadData} variant="outline">
+              <Button onClick={() => loadData()} variant="outline">
                 다시 시도
               </Button>
             </div>
@@ -259,12 +256,12 @@ export default function Home() {
             </div>
           ) : (
             <div className="text-center py-12 bg-white rounded-lg border border-dashed border-gray-300">
-              <FileText className="h-12 w-12 text-gray-400 mx-auto mb-4" />
+              <div className="text-gray-400 mb-4">📂</div>
               <h3 className="text-lg font-medium text-gray-900 mb-2">
                 아직 영수증이 없습니다
               </h3>
               <p className="text-gray-600 mb-4">
-                첫 번째 영수증을 추가해서 시작해보세요
+                새로운 영수증을 추가하여 시작하세요.
               </p>
               <Button onClick={handleAddReceipt}>
                 영수증 추가하기

@@ -25,8 +25,8 @@ export default function ReceiptDetailPage() {
           setLoading(true)
           const data = await getReceiptById(id)
           setReceipt(data)
-        } catch (err: any) {
-          setError(err.message)
+        } catch (err) {
+          setError(err instanceof Error ? err.message : '영수증 정보를 가져오는데 실패했습니다.');
         } finally {
           setLoading(false)
         }
@@ -42,8 +42,9 @@ export default function ReceiptDetailPage() {
         await deleteReceipt(receipt.id)
         alert('영수증이 삭제되었습니다.')
         router.push('/')
-      } catch (err: any) {
-        alert(`삭제 실패: ${err.message}`)
+      } catch (err) {
+        const message = err instanceof Error ? err.message : '알 수 없는 오류가 발생했습니다.';
+        alert(`삭제 실패: ${message}`)
       }
     }
   }

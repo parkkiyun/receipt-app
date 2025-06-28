@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useRef, DragEvent, ChangeEvent } from 'react'
+import Image from 'next/image'
 import { Upload, X, FileImage } from 'lucide-react'
 import Button from '@/components/ui/Button'
 import Loading from '@/components/ui/Loading'
@@ -127,11 +128,13 @@ export default function ImageUpload({
   if (preview) {
     return (
       <div className="relative">
-        <div className="border-2 border-gray-300 rounded-lg overflow-hidden">
-          <img
+        <div className="border-2 border-gray-300 rounded-lg overflow-hidden relative" style={{ height: '256px' }}>
+          <Image
             src={preview}
             alt="업로드된 이미지"
-            className="w-full h-64 object-contain bg-gray-50"
+            layout="fill"
+            objectFit="contain"
+            className="bg-gray-50"
           />
         </div>
         <button

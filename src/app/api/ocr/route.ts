@@ -132,15 +132,14 @@ function parseReceiptText(text: string) {
             receipt_date = `${match[3]}-${match[1].padStart(2, '0')}-${match[2].padStart(2, '0')}`
           }
         } else {
-          // 2자리 연도인 경우 현재 연도로 가정
-          const currentYear = new Date().getFullYear()
+          // 2자리 연도인 경우
           if (pattern === datePatterns[2]) {
             const year = parseInt(match[1]) + 2000
             receipt_date = `${year}-${match[2].padStart(2, '0')}-${match[3].padStart(2, '0')}`
           }
         }
         break
-      } catch (e) {
+      } catch {
         // 날짜 파싱 실패시 무시
       }
     }
