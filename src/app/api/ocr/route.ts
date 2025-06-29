@@ -5,7 +5,8 @@ import { getCurrentUserOnServer } from '@/lib/api/server-auth'
 
 // Google Vision API 클라이언트 (서버리스 환경에서는 REST API 사용)
 async function processImageWithVision(imageBase64: string): Promise<OCRResult> {
-  const apiKey = process.env.GOOGLE_CLOUD_VISION_API_KEY
+  // Try both server and client side environment variables
+  const apiKey = process.env.GOOGLE_CLOUD_VISION_API_KEY || process.env.NEXT_PUBLIC_GOOGLE_CLOUD_VISION_API_KEY
   
   if (!apiKey) {
     throw new Error('Google Vision API 키가 설정되지 않았습니다.')
@@ -254,6 +255,12 @@ export async function POST(request: NextRequest) {
     // Check if environment variables are set
     if (!process.env.CLOVA_OCR_API_URL || !process.env.CLOVA_OCR_API_KEY) {
       console.error('CLOVA OCR API URL 또는 키가 설정되지 않았습니다.');
+      console.log('Available env vars:', {
+        CLOVA_OCR_API_URL: process.env.CLOVA_OCR_API_URL ? 'present' : 'missing',
+        CLOVA_OCR_API_KEY: process.env.CLOVA_OCR_API_KEY ? 'present' : 'missing',
+        GOOGLE_CLOUD_VISION_API_KEY: process.env.GOOGLE_CLOUD_VISION_API_KEY ? 'present' : 'missing',
+        NEXT_PUBLIC_GOOGLE_CLOUD_VISION_API_KEY: process.env.NEXT_PUBLIC_GOOGLE_CLOUD_VISION_API_KEY ? 'present' : 'missing'
+      });
       
       // Use Google Vision API as fallback
       const bytes = await file.arrayBuffer();
