@@ -15,7 +15,7 @@ export async function getReceipts(
   year?: number,
   month?: number
 ): Promise<Receipt[]> {
-  const supabase = createSupabaseServerClient()
+  const supabase = await createSupabaseServerClient()
   let query = supabase
     .from('receipts')
     .select('*')
@@ -57,7 +57,7 @@ export async function getReceipts(
 
 // 특정 영수증 조회
 export async function getReceiptById(id: string): Promise<Receipt | null> {
-  const supabase = createSupabaseServerClient()
+  const supabase = await createSupabaseServerClient()
   const { data: receipt, error } = await supabase
     .from('receipts')
     .select('*')
@@ -86,6 +86,7 @@ export async function getReceiptById(id: string): Promise<Receipt | null> {
 export async function createReceipt(receiptData: CreateReceiptData) {
   // UUID가 유효하지 않은 경우 null로 저장 (개발 환경용)
   const validUserId = isValidUUID(receiptData.user_id) ? receiptData.user_id : null
+  const supabase = await createSupabaseServerClient()
 
   const { data, error } = await supabase
     .from('receipts')
@@ -105,6 +106,7 @@ export async function createReceipt(receiptData: CreateReceiptData) {
 
 // 영수증 업데이트
 export async function updateReceipt(id: string, updates: Partial<CreateReceiptData>) {
+  const supabase = await createSupabaseServerClient()
   const { data, error } = await supabase
     .from('receipts')
     .update(updates)
@@ -121,6 +123,7 @@ export async function updateReceipt(id: string, updates: Partial<CreateReceiptDa
 
 // 영수증 삭제
 export async function deleteReceipt(id: string) {
+  const supabase = await createSupabaseServerClient()
   const { error } = await supabase
     .from('receipts')
     .delete()
@@ -137,6 +140,7 @@ export async function deleteReceipt(id: string) {
 export async function getMonthlyStats(userId: string, year: number, month: number) {
   const startDate = new Date(year, month - 1, 1).toISOString().split('T')[0]
   const endDate = new Date(year, month, 0).toISOString().split('T')[0]
+  const supabase = await createSupabaseServerClient()
 
   let query = supabase
     .from('receipts')
@@ -158,12 +162,12 @@ export async function getMonthlyStats(userId: string, year: number, month: numbe
   }
 
   // 통계 계산
-  const totalAmount = data.reduce((sum, receipt) => sum + (receipt.total_amount || 0), 0)
+  const totalAmount = data.reduce((sum: number, receipt: { total_amount?: number }) => sum + (receipt.total_amount || 0), 0)
   const totalCount = data.length
   const averageAmount = totalCount > 0 ? totalAmount / totalCount : 0
 
   // 카테고리별 통계
-  const categoryStats = data.reduce((acc, receipt) => {
+  const categoryStats = data.reduce((acc: Record<string, { amount: number; count: number }>, receipt: { category?: string; total_amount?: number }) => {
     const category = receipt.category || 'misc'
     if (!acc[category]) {
       acc[category] = { amount: 0, count: 0 }
@@ -183,6 +187,7 @@ export async function getMonthlyStats(userId: string, year: number, month: numbe
 
 // 전체 월별 통계 조회 (드롭다운용)
 export async function getOverallMonthlyStats(userId: string) {
+  const supabase = await createSupabaseServerClient()
   let query = supabase
     .from('receipts')
     .select('receipt_date, total_amount')
@@ -202,7 +207,7 @@ export async function getOverallMonthlyStats(userId: string) {
     return [];
   }
 
-  const monthlyStats = data.reduce((acc, receipt) => {
+  const monthlyStats = data.reduce((acc: Record<string, { month: string; total_amount: number; count: number }>, receipt: { receipt_date: string; total_amount?: number }) => {
     const month = receipt.receipt_date.slice(0, 7); // YYYY-MM
     if (!acc[month]) {
       acc[month] = { month, total_amount: 0, count: 0 };
@@ -217,6 +222,7 @@ export async function getOverallMonthlyStats(userId: string) {
 
 // 카테고리별 통계 조회
 export async function getCategoryStats(userId: string, startDate?: string, endDate?: string) {
+  const supabase = await createSupabaseServerClient()
   let query = supabase
     .from('receipts')
     .select('category, total_amount')
@@ -242,7 +248,7 @@ export async function getCategoryStats(userId: string, startDate?: string, endDa
     throw new Error(`카테고리 통계 조회 실패: ${error.message}`)
   }
 
-  return data.reduce((acc, receipt) => {
+  return data.reduce((acc: Record<string, { amount: number; count: number }>, receipt: { category?: string; total_amount?: number }) => {
     const category = receipt.category || 'misc'
     if (!acc[category]) {
       acc[category] = { amount: 0, count: 0 }

@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
 import Image from 'next/image'
-import { getReceiptById, deleteReceipt } from '@/lib/api/receipts'
+import { getReceiptById, deleteReceipt } from '@/lib/api/client-receipts'
 import { Receipt } from '@/types'
 import Button from '@/components/ui/Button'
 import Loading from '@/components/ui/Loading'

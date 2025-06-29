@@ -11,9 +11,8 @@ import ImageInputTabs from '@/components/ImageInput/ImageInputTabs'
 import Button from '@/components/ui/Button'
 import Loading from '@/components/ui/Loading'
 import { Receipt } from '@/types'
-import { createReceipt } from '@/lib/api/receipts'
+import { createReceipt } from '@/lib/api/client-receipts'
 import { createClient } from '@/lib/supabase/client'
-import { uploadReceiptImage } from '@/lib/api/storage'
 
 const STEPS = {
   INPUT: 1,

@@ -9,7 +9,7 @@ import ReceiptCard from '@/components/ReceiptCard'
 import Loading from '@/components/ui/Loading'
 import Button from '@/components/ui/Button'
 import { Receipt } from '@/types'
-import { getReceipts, getOverallMonthlyStats } from '@/lib/api/receipts'
+import { getReceipts, getOverallMonthlyStats } from '@/lib/api/client-receipts'
 
 interface MonthlyStat {
   month: string;
@@ -40,8 +40,8 @@ export default function ReceiptsDashboard({ user }: { user: SupabaseUser | null 
   const fetchAllMonthlyStats = useCallback(async (userId: string) => {
     try {
         const stats = await getOverallMonthlyStats(userId);
-        setMonthlyStats(stats);
-        if (stats.length > 0 && !stats.some(s => s.month === selectedMonth)) {
+        setMonthlyStats(stats as MonthlyStat[]);
+        if (stats.length > 0 && !stats.some((s) => s.month === selectedMonth)) {
             setSelectedMonth(stats[0].month);
         }
     } catch (error) {

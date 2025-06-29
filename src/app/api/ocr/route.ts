@@ -1,12 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { OCRResult } from '@/types'
-import { supabase } from '@/lib/supabase'
 import { uploadReceiptImage } from '@/lib/api/storage'
 import { getCurrentUserOnServer } from '@/lib/api/server-auth'
 
 // Google Vision API 클라이언트 (서버리스 환경에서는 REST API 사용)
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 async function processImageWithVision(imageBase64: string): Promise<OCRResult> {
-  const apiKey = process.env.NEXT_PUBLIC_GOOGLE_CLOUD_VISION_API_KEY
+  const apiKey = process.env.GOOGLE_CLOUD_VISION_API_KEY
   
   if (!apiKey) {
     throw new Error('Google Vision API 키가 설정되지 않았습니다.')
@@ -252,10 +252,10 @@ export async function POST(request: NextRequest) {
     ocrRequestFormData.append('file', file);
 
 
-    const ocrApiResponse = await fetch(process.env.NEXT_PUBLIC_CLOVA_OCR_API_URL!, {
+    const ocrApiResponse = await fetch(process.env.CLOVA_OCR_API_URL!, {
       method: 'POST',
       headers: {
-        'X-OCR-SECRET': process.env.NEXT_PUBLIC_CLOVA_OCR_API_KEY!,
+        'X-OCR-SECRET': process.env.CLOVA_OCR_API_KEY!,
       },
       body: ocrRequestFormData,
     });
@@ -280,8 +280,9 @@ export async function POST(request: NextRequest) {
       imageUrl
     });
 
-  } catch (e: any) {
+  } catch (e) {
     console.error('OCR API 오류:', e);
-    return NextResponse.json({ error: e.message || '알 수 없는 서버 오류' }, { status: 500 });
+    const errorMessage = e instanceof Error ? e.message : '알 수 없는 서버 오류';
+    return NextResponse.json({ error: errorMessage }, { status: 500 });
   }
 } 

@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
-import { Menu, X, FilePlus, LayoutDashboard } from 'lucide-react'
+import { Menu, X, FilePlus, LayoutDashboard, BarChart3 } from 'lucide-react'
 
 export default function Header() {
   const [isOpen, setIsOpen] = useState(false)
@@ -10,7 +10,8 @@ export default function Header() {
   const navLinks = [
     { href: '/', label: '대시보드', icon: LayoutDashboard },
     { href: '/add', label: '영수증 추가', icon: FilePlus },
-    { href: '/receipts', label: '모든 영수증', icon: LayoutDashboard }
+    { href: '/receipts', label: '모든 영수증', icon: LayoutDashboard },
+    { href: '/reports', label: '월별 리포트', icon: BarChart3 }
   ]
 
   return (
