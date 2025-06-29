@@ -241,7 +241,7 @@ export async function POST(request: NextRequest) {
       ],
       requestId: 'string', // uuid or other unique id
       version: 'V2',
-      timestamp: Date.now(),
+      timestamp: Date.now().toString(),
     };
 
     const ocrRequestFormData = new FormData();
