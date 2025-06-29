@@ -7,7 +7,7 @@ import { ArrowLeft, Save, Loader2, AlertCircle } from 'lucide-react'
 import { User } from '@supabase/supabase-js'
 import imageCompression from 'browser-image-compression'
 
-import ImageInputTabs from '@/components/ImageInput/ImageInputTabs'
+import ImageInputSimple from '@/components/ImageInput/ImageInputSimple'
 import Button from '@/components/ui/Button'
 import Loading from '@/components/ui/Loading'
 import { Receipt } from '@/types'
@@ -156,8 +156,8 @@ export default function AddReceiptPage() {
       {step === STEPS.INPUT && (
         <div>
           <h1 className="text-3xl font-bold mb-2">영수증 추가</h1>
-          <p className="text-gray-600 mb-6">카메라로 촬영하거나, 파일을 업로드하여 영수증을 추가하세요.</p>
-          <ImageInputTabs onImageSelect={handleImageUpload} />
+          <p className="text-gray-600 mb-6">파일을 업로드하여 영수증을 추가하세요.</p>
+          <ImageInputSimple onImageSelect={handleImageUpload} />
         </div>
       )}
 

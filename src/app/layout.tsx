@@ -17,8 +17,6 @@ export const metadata: Metadata = {
   title: "영수증 아카이브",
   description: "영수증을 스마트하게 관리하세요.",
   manifest: "/manifest.json",
-  themeColor: "#3b82f6",
-  viewport: "width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no",
   appleWebApp: {
     capable: true,
     statusBarStyle: "default",

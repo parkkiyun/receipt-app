@@ -4,7 +4,6 @@ import { uploadReceiptImage } from '@/lib/api/storage'
 import { getCurrentUserOnServer } from '@/lib/api/server-auth'
 
 // Google Vision API 클라이언트 (서버리스 환경에서는 REST API 사용)
-// eslint-disable-next-line @typescript-eslint/no-unused-vars
 async function processImageWithVision(imageBase64: string): Promise<OCRResult> {
   const apiKey = process.env.GOOGLE_CLOUD_VISION_API_KEY
   
@@ -252,10 +251,36 @@ export async function POST(request: NextRequest) {
     ocrRequestFormData.append('file', file);
 
 
-    const ocrApiResponse = await fetch(process.env.CLOVA_OCR_API_URL!, {
+    // Check if environment variables are set
+    if (!process.env.CLOVA_OCR_API_URL || !process.env.CLOVA_OCR_API_KEY) {
+      console.error('CLOVA OCR API URL 또는 키가 설정되지 않았습니다.');
+      
+      // Use Google Vision API as fallback
+      const bytes = await file.arrayBuffer();
+      const buffer = Buffer.from(bytes);
+      const base64Image = buffer.toString('base64');
+      
+      try {
+        const visionResult = await processImageWithVision(base64Image);
+        return NextResponse.json({ 
+          store_name: visionResult.store_name,
+          total_amount: visionResult.total_amount,
+          date: visionResult.receipt_date,
+          text: visionResult.text,
+          imageUrl
+        });
+      } catch (visionError) {
+        console.error('Google Vision API 오류:', visionError);
+        return NextResponse.json({ 
+          error: 'OCR API가 설정되지 않았습니다. 환경 변수를 확인해주세요.' 
+        }, { status: 500 });
+      }
+    }
+
+    const ocrApiResponse = await fetch(process.env.CLOVA_OCR_API_URL, {
       method: 'POST',
       headers: {
-        'X-OCR-SECRET': process.env.CLOVA_OCR_API_KEY!,
+        'X-OCR-SECRET': process.env.CLOVA_OCR_API_KEY,
       },
       body: ocrRequestFormData,
     });
