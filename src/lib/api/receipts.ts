@@ -185,12 +185,12 @@ export async function getMonthlyStats(userId: string, year: number, month: numbe
   }
 }
 
-// 전체 월별 통계 조회 (드롭다운용)
+// 전체 월별 통계 조회 (리포트용)
 export async function getOverallMonthlyStats(userId: string) {
   const supabase = await createSupabaseServerClient()
   let query = supabase
     .from('receipts')
-    .select('receipt_date, total_amount')
+    .select('receipt_date, total_amount, category')
     .order('receipt_date', { ascending: false });
 
   if (isValidUUID(userId)) {
@@ -207,15 +207,25 @@ export async function getOverallMonthlyStats(userId: string) {
     return [];
   }
 
-  const monthlyStats = data.reduce((acc: Record<string, { month: string; total_amount: number; count: number }>, receipt: { receipt_date: string; total_amount?: number }) => {
+  const monthlyStats = data.reduce((acc: Record<string, { month: string; total_amount: number; receipt_count: number; categories: { category: string; amount: number }[] }>, receipt: { receipt_date: string; total_amount?: number; category?: string }) => {
     const month = receipt.receipt_date.slice(0, 7); // YYYY-MM
     if (!acc[month]) {
-      acc[month] = { month, total_amount: 0, count: 0 };
+      acc[month] = { month, total_amount: 0, receipt_count: 0, categories: [] };
     }
     acc[month].total_amount += receipt.total_amount || 0;
-    acc[month].count += 1;
+    acc[month].receipt_count += 1;
+    
+    // 카테고리별 금액 추가
+    const category = receipt.category || '기타';
+    const existingCategory = acc[month].categories.find(c => c.category === category);
+    if (existingCategory) {
+      existingCategory.amount += receipt.total_amount || 0;
+    } else {
+      acc[month].categories.push({ category, amount: receipt.total_amount || 0 });
+    }
+    
     return acc;
-  }, {} as Record<string, { month: string; total_amount: number; count: number }>);
+  }, {} as Record<string, { month: string; total_amount: number; receipt_count: number; categories: { category: string; amount: number }[] }>);
 
   return Object.values(monthlyStats);
 }

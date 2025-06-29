@@ -37,8 +37,7 @@ export default async function ReportsPage() {
 }
 
 async function MonthlyReportData({ userId }: { userId: string }) {
-  const supabase = await createSupabaseServerClient();
-  const monthlyStats = await getOverallMonthlyStats(supabase, userId);
+  const monthlyStats = await getOverallMonthlyStats(userId);
 
   return <MonthlyReport monthlyStats={monthlyStats} />;
 }

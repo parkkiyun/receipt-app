@@ -56,7 +56,15 @@ export default function ReceiptsPage() {
   const handleSearch = useCallback(async (userId: string, searchFilters: SearchFiltersType) => {
     setLoading(true)
     try {
-      const data = await searchReceipts(userId, searchFilters, 100, 0)
+      const data = await searchReceipts(userId, {
+        text: searchFilters.text,
+        storeName: searchFilters.storeName,
+        category: searchFilters.category,
+        minAmount: searchFilters.minAmount ?? undefined,
+        maxAmount: searchFilters.maxAmount ?? undefined,
+        startDate: searchFilters.startDate,
+        endDate: searchFilters.endDate
+      }, 100, 0)
       setReceipts(data)
     } catch (error) {
       console.error('Failed to search receipts:', error)

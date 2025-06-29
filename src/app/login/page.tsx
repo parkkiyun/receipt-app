@@ -22,23 +22,39 @@ export default function LoginPage() {
     setIsSubmitting(true)
     setError(null)
 
-    const authAction = isSignUp
-      ? supabase.auth.signUp
-      : supabase.auth.signInWithPassword
+    try {
+      let result
+      
+      if (isSignUp) {
+        result = await supabase.auth.signUp({
+          email,
+          password,
+        })
+      } else {
+        result = await supabase.auth.signInWithPassword({
+          email,
+          password,
+        })
+      }
 
-    const { error: authError } = await authAction({
-      email,
-      password,
-    })
+      const { error: authError, data } = result
+      console.log('Auth result:', { error: authError, data })
 
-    if (authError) {
-      setError(authError.message)
+      if (authError) {
+        console.error('Auth error details:', authError)
+        setError(authError.message)
+        setIsSubmitting(false)
+        return
+      }
+
+      router.refresh()
+      router.push('/')
+    } catch (error) {
+      console.error('Unexpected auth error:', error)
+      setError('로그인 중 오류가 발생했습니다.')
       setIsSubmitting(false)
       return
     }
-
-    router.refresh()
-    router.push('/')
   }
 
   return (

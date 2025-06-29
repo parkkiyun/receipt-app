@@ -37,7 +37,7 @@ export default function MonthlyReport({ monthlyStats }: MonthlyReportProps) {
 
   // 카테고리별 데이터 처리
   const categoryData = filteredData.reduce((acc, stat) => {
-    stat.categories.forEach(cat => {
+    stat.categories.forEach((cat: { category: string; amount: number }) => {
       if (acc[cat.category]) {
         acc[cat.category] += cat.amount;
       } else {
@@ -202,7 +202,7 @@ export default function MonthlyReport({ monthlyStats }: MonthlyReportProps) {
                 cx="50%"
                 cy="50%"
                 labelLine={false}
-                label={({ name, percent }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                label={({ name, percent }) => `${name} ${((percent || 0) * 100).toFixed(0)}%`}
                 outerRadius={80}
                 fill="#8884d8"
                 dataKey="value"

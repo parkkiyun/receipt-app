@@ -51,4 +51,15 @@ export interface MonthlyReport {
       count: number
     }
   }
+}
+
+// 월별 통계 타입
+export interface MonthlyStats {
+  month: string
+  total_amount: number
+  receipt_count: number
+  categories: {
+    category: string
+    amount: number
+  }[]
 } 
